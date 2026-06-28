@@ -42,6 +42,16 @@ func MergeResults(resultSets ...[]SearchResult) []SearchResult {
 //	    return fmt.Sprintf("%d", r.ID)
 //	})
 func DeduplicateResults(results []SearchResult, keyFunc func(SearchResult) string) []SearchResult {
+	if keyFunc == nil {
+		// Return a copy to avoid aliasing, but skip dedup since we
+		// have no key to compare. Callers should always provide a keyFunc.
+		if len(results) == 0 {
+			return results
+		}
+		deduped := make([]SearchResult, len(results))
+		copy(deduped, results)
+		return deduped
+	}
 	seen := make(map[string]bool, len(results))
 	deduped := make([]SearchResult, 0, len(results))
 	for _, r := range results {
